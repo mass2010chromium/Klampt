@@ -118,7 +118,7 @@ void ViewRobot::BlendColors(const GLColor& c,Real fraction)
       const GLDraw::GeometryAppearance& alast = LastAppearance(i);
       GLDraw::GeometryAppearance& a = Appearance(i);
       a.CopyMaterial(alast);
-      a.ModulateColor(c,fraction);
+      //a.ModulateColor(c,fraction);
     }
   }
 }
@@ -129,7 +129,7 @@ void ViewRobot::BlendColor(int link,const GLColor& c,Real fraction)
     const GLDraw::GeometryAppearance& alast = LastAppearance(link);
     GLDraw::GeometryAppearance& a = Appearance(link);
     a.CopyMaterial(alast);
-    a.ModulateColor(c,fraction);
+    //a.ModulateColor(c,fraction);
   }
 }
 

@@ -152,7 +152,7 @@ void RobotTestBackend::RenderWorld()
         //draw a little blue
         if(robot->selfCollisions(i,cur_link) || robot->selfCollisions(cur_link,i) )  {
           GLDraw::GeometryAppearance &app  = viewRobot.Appearance(i);
-          app.ModulateColor(blue,0.5);
+          //app.ModulateColor(blue,0.5);
         }
       }
     }
