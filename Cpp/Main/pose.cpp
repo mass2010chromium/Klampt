@@ -122,10 +122,10 @@ public:
       }
     }
 
-    poseWidget.Set(world->robots[0],&world->robotViews[0]);
+    poseWidget.Set(world->robots[0].get(),&world->robotViews[0]);
     objectWidgets.resize(world->rigidObjects.size());
     for(size_t i=0;i<world->rigidObjects.size();i++)
-      objectWidgets[i].Set(world->rigidObjects[i]);
+      objectWidgets[i].Set(world->rigidObjects[i].get());
     allWidgets.widgets.push_back(&poseWidget);
     for(size_t i=0;i<world->rigidObjects.size();i++)
       allWidgets.widgets.push_back(&objectWidgets[i]);
@@ -140,7 +140,7 @@ public:
     pose_ik = 0;
     attachMode = false;
     if(!ResourceBrowserProgram::Initialize()) return false;
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     viewResource.SetRobot(robot);
     self_colliding.resize(robot->links.size(),false);   
     env_colliding.resize(robot->links.size(),false);   
@@ -212,7 +212,7 @@ public:
   
   void UpdateConfig()
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     robot->UpdateConfig(poseWidget.Pose());
 
     //update collisions
@@ -255,7 +255,7 @@ public:
 
   void UpdateLinkValueGUI()
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     Vector2 limits(robot->qMin(cur_link),robot->qMax(cur_link));
     link_value_spinner->set_float_limits(limits.x,limits.y);
     link_value = robot->q(cur_link);
@@ -279,7 +279,7 @@ public:
 
   void UpdateDriverValueGUI()
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     Vector2 limits = robot->GetDriverLimits(cur_driver);
     driver_value_spinner->set_float_limits(limits.x,limits.y);
     driver_value = robot->GetDriverValue(cur_driver);
@@ -287,7 +287,7 @@ public:
 
   virtual void RenderWorld()
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     ViewRobot& viewRobot = world->robotViews[0];
     //ResourceBrowserProgram::RenderWorld();
     for(size_t i=0;i<world->terrains.size();i++)
@@ -330,8 +330,8 @@ public:
       viewRobot.DrawLinkFrames();
       glDisable(GL_DEPTH_TEST);
       glPushMatrix();
-      glMultMatrix((Matrix4)robot->links[cur_link].T_World);
-      drawCoords(settings["linkFrameSize"]);
+      //glMultMatrix((Matrix4)robot->links[cur_link].T_World);
+      //drawCoords(settings["linkFrameSize"]);
       glPopMatrix();
       glEnable(GL_DEPTH_TEST);
     }
@@ -379,7 +379,7 @@ public:
 
   Stance GetFlatStance()
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     Stance s;
     if(poseWidget.ikPoser.poseGoals.empty()) {
       printf("Storing flat ground stance\n");
@@ -416,7 +416,7 @@ public:
 
   ResourcePtr PoserToResource()
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     string type = resource_types[ResourceBrowserProgram::cur_resource_type];
     if(type == "Config") 
       return MakeResource("",robot->q);
@@ -450,7 +450,7 @@ public:
 	}
       
       ResourcePtr r=ResourceBrowserProgram::CurrentResource();
-      const GeometricPrimitive3DResource* gr = dynamic_cast<const GeometricPrimitive3DResource*>((const ResourceBase*)r);
+      const GeometricPrimitive3DResource* gr = dynamic_cast<const GeometricPrimitive3DResource*>((const ResourceBase*)r.get());
       if(gr) {
 	cout<<"Making grasp relative to "<<gr->name<<endl;
 	//TODO: detect contacts
@@ -461,7 +461,7 @@ public:
 	g.Transform(Tinv);
       }
       else {
-	const RigidObjectResource* obj = dynamic_cast<const RigidObjectResource*>((const ResourceBase*)r);
+	const RigidObjectResource* obj = dynamic_cast<const RigidObjectResource*>((const ResourceBase*)r.get());
 	if(obj) {
 	  cout<<"Making grasp relative to "<<obj->name<<endl;
 	  //TODO: detect contacts
@@ -489,7 +489,7 @@ public:
 
   virtual void Handle_Control(int id)
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     switch(id) {
     case SAVE_MOVIE_BUTTON_ID:
       //resize for movie
@@ -534,7 +534,7 @@ public:
     case RETRIEVE_FROM_LIBRARY_ID:
       {
 	ResourcePtr r=ResourceBrowserProgram::CurrentResource();
-	const ConfigResource* rc = dynamic_cast<const ConfigResource*>((const ResourceBase*)r);
+	const ConfigResource* rc = dynamic_cast<const ConfigResource*>((const ResourceBase*)r.get());
 	if(rc) {
 	  poseWidget.SetPose(rc->data);
 	  robot->NormalizeAngles(poseWidget.linkPoser.poseConfig);
@@ -544,13 +544,13 @@ public:
 	  Refresh();
 	}
 	else {
-	  const IKGoalResource* rc = dynamic_cast<const IKGoalResource*>((const ResourceBase*)r);
+	  const IKGoalResource* rc = dynamic_cast<const IKGoalResource*>((const ResourceBase*)r.get());
 	  if(rc) {
 	    poseWidget.ikPoser.ClearLink(rc->goal.link);
 	    poseWidget.ikPoser.Add(rc->goal);
 	  }
 	  else {
-	    const StanceResource* rc = dynamic_cast<const StanceResource*>((const ResourceBase*)r);
+	    const StanceResource* rc = dynamic_cast<const StanceResource*>((const ResourceBase*)r.get());
 	    if(rc) {
 	      poseWidget.ikPoser.poseGoals.clear();
 	      poseWidget.ikPoser.poseWidgets.clear();
@@ -561,7 +561,7 @@ public:
 	      Refresh();
 	    }
 	    else {
-	      const GraspResource* rc = dynamic_cast<const GraspResource*>((const ResourceBase*)r);
+	      const GraspResource* rc = dynamic_cast<const GraspResource*>((const ResourceBase*)r.get());
 	      if(rc) {
 		poseWidget.ikPoser.poseGoals.clear();
 		poseWidget.ikPoser.poseWidgets.clear();
@@ -583,7 +583,7 @@ public:
 	vector<Config> configs,milestones;
 
 	ResourcePtr r=ResourceBrowserProgram::CurrentResource();
-	const ConfigResource* rc = dynamic_cast<const ConfigResource*>((const ResourceBase*)r);
+	const ConfigResource* rc = dynamic_cast<const ConfigResource*>((const ResourceBase*)r.get());
 	if(rc) {
 	  Config a,b;
 	  a = rc->data;
@@ -600,7 +600,7 @@ public:
 	  times[1] = 1;
 	}
 	else {
-	  const ConfigsResource* rc = dynamic_cast<const ConfigsResource*>((const ResourceBase*)r);
+	  const ConfigsResource* rc = dynamic_cast<const ConfigsResource*>((const ResourceBase*)r.get());
 	  if(rc) {
 	    milestones = rc->configs;
 	    times.resize(rc->configs.size());
@@ -617,7 +617,7 @@ public:
 	  configs = milestones;
 	}
 	else {
-	  Robot* robot=world->robots[0].robot;
+	  Robot* robot=world->robots[0].robo;
 	  Timer timer;
 	  if(!InterpolateConstrainedPath(*robot,milestones,poseWidget.Constraints(),configs,1e-2)) return;
 
@@ -646,7 +646,7 @@ public:
     case SAVE_PATH_CONFIGS_ID:
       {
 	ResourcePtr r=ResourceBrowserProgram::CurrentResource();
-	const ConfigsResource* cp = dynamic_cast<const ConfigsResource*>((const ResourceBase*)r);
+	const ConfigsResource* cp = dynamic_cast<const ConfigsResource*>((const ResourceBase*)r.get());
 	if(cp) {
 	  for(size_t i=0;i<cp->configs.size();i++) {
 	    stringstream ss;
@@ -657,7 +657,7 @@ public:
 	  Refresh();
 	  break;
 	}
-	const LinearPathResource* lp = dynamic_cast<const LinearPathResource*>((const ResourceBase*)r);
+	const LinearPathResource* lp = dynamic_cast<const LinearPathResource*>((const ResourceBase*)r.get());
 	if(lp) {
 	  int num;
 	  cout<<"How many points? > "; cout.flush();
@@ -678,7 +678,7 @@ public:
 	  Refresh();
 	  break;
 	}
-	const MultiPathResource* mp = dynamic_cast<const MultiPathResource*>((const ResourceBase*)r);
+	const MultiPathResource* mp = dynamic_cast<const MultiPathResource*>((const ResourceBase*)r.get());
 	if(mp) {
 	  int num;
 	  cout<<"How many points? > "; cout.flush();
@@ -706,7 +706,7 @@ public:
     case OPTIMIZE_PATH_ID:
       {
 	ResourcePtr r=ResourceBrowserProgram::CurrentResource();
-	const LinearPathResource* lp = dynamic_cast<const LinearPathResource*>((const ResourceBase*)r);
+	const LinearPathResource* lp = dynamic_cast<const LinearPathResource*>((const ResourceBase*)r.get());
 	if(lp) {
 	  vector<double> newtimes;
 	  vector<Config> newconfigs;
@@ -718,7 +718,7 @@ public:
 	  ResourceBrowserProgram::SetLastActive(); 
 	  ResourceBrowserProgram::viewResource.pathTime = 0;
 	}
-	const MultiPathResource* mp = dynamic_cast<const MultiPathResource*>((const ResourceBase*)r);
+	const MultiPathResource* mp = dynamic_cast<const MultiPathResource*>((const ResourceBase*)r.get());
 	if(mp) {
 	  Real xtol = settings["pathOptimize"]["contactTol"];
 	  Real dt = settings["pathOptimize"]["outputResolution"];
@@ -731,7 +731,7 @@ public:
 	  ResourceBrowserProgram::SetLastActive(); 
 	  ResourceBrowserProgram::viewResource.pathTime = 0;
 	}
-	const ConfigsResource* rc = dynamic_cast<const ConfigsResource*>((const ResourceBase*)r);
+	const ConfigsResource* rc = dynamic_cast<const ConfigsResource*>((const ResourceBase*)r.get());
 	if(rc) {
 	  MultiPath path;
 	  path.sections.resize(1);
@@ -762,7 +762,7 @@ public:
     case CLEAN_CONTACTS_ID:
       {
 	ResourcePtr r=ResourceBrowserProgram::CurrentResource();
-	const StanceResource* sp = dynamic_cast<const StanceResource*>((const ResourceBase*)r);
+	const StanceResource* sp = dynamic_cast<const StanceResource*>((const ResourceBase*)r.get());
 	if(sp) {
 	  Stance s=sp->stance;
 	  for(Stance::iterator i=s.begin();i!=s.end();i++)
@@ -773,7 +773,7 @@ public:
 	    ResourceBrowserProgram::SetLastActive();
 	  }
 	}
-	const HoldResource* hp = dynamic_cast<const HoldResource*>((const ResourceBase*)r);
+	const HoldResource* hp = dynamic_cast<const HoldResource*>((const ResourceBase*)r.get());
 	if(hp) {
 	  Hold h = hp->hold;
 	  CleanContacts(h);
@@ -834,7 +834,7 @@ public:
 
   virtual void Handle_Keypress(unsigned char key,int x,int y)
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     switch(key) {
     case 'h':
       printf("Help:\n");
@@ -927,7 +927,7 @@ public:
 
   virtual void BeginDrag(int x,int y,int button,int modifiers)
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     if(button == GLUT_RIGHT_BUTTON) {
       double d;
       if(allWidgets.BeginDrag(x,viewport.h-y,viewport,d))
@@ -950,7 +950,7 @@ public:
 
   virtual void DoFreeDrag(int dx,int dy,int button)
   {
-    Robot* robot = world->robots[0];
+    Robot* robot = world->robots[0].get();
     if(button == GLUT_LEFT_BUTTON)  DragRotate(dx,dy);
     else if(button == GLUT_RIGHT_BUTTON) {
       if(allWidgets.hasFocus) {
@@ -985,7 +985,7 @@ const char* OPTIONS_STRING = "Options:\n\
 \t-l [file]: loads the given resource file.\n\
 ";
 
-#include <Krislibrary/utils/EquivalenceMap.h>
+#include <KrisLibrary/utils/EquivalenceMap.h>
 
 struct EqualVertex
 {
