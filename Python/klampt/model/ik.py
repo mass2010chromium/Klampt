@@ -388,7 +388,8 @@ class SubRobotIKSolver(IKSolver):
         ------
             Matrix (6 x N) J; such that J @ qdot = EE velocity.
         """
-        return super().getJacobian()[:, self.subrobot._links]
+        # NOTE: already sliced to activedofs
+        return super().getJacobian()
 
 
 

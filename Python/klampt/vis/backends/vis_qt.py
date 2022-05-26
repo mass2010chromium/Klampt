@@ -267,8 +267,8 @@ class QtWindowManager(_ThreadedWindowManager):
                             print("#########################################")
                             w.glwindow.hide()
                             w.guidata.hide()
-                        w.guidata.close()
-                        w.guidata = None
+                        #w.guidata.close()
+                        #w.guidata = None
             except Exception:
                 print("Exception called in visualization thread; closing.")
                 _globalLock.release()
