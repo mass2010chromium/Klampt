@@ -34,7 +34,11 @@ class SubRobotModel:
         assert isinstance(robot,(RobotModel,SubRobotModel)),"SubRobotModel constructor must be given a RobotModel or SubRobotModel as first argument"
         self._robot = robot
         self._links = [ robot.link(i).index for i in links ]     #type : List[int]
-        self._drivers = None       #type : List[RobotModelDriver]
+        self._drivers = []
+        for i in range(self._robot.numDrivers()):
+            d = self._robot.driver(i)
+            if any((l in self._links) for l in d.getAffectedLinks()):
+                self._drivers.append(d)
         self.index = robot.index
         self.world = robot.world
         if isinstance(robot,SubRobotModel):
@@ -156,21 +160,10 @@ class SubRobotModel:
         else:
             return SubRobotModelLink(self._robot.link(self._links[index]),self)
 
-    def _computeDrivers(self):
-        self._drivers = []
-        for i in range(self._robot.numDrivers()):
-            d = self._robot.driver(i)
-            if any((l in self._links) for l in d.getAffectedLinks()):
-                self._drivers.append(d)
-
     def numDrivers(self) -> int:
-        if self._drivers is None:
-            self._computeDrivers()
         return len(self._drivers)
 
     def driver(self, index : int) -> 'SubRobotModelDriver':
-        if self._drivers is None:
-            self._computeDrivers()
         if index < 0 or index >= len(self._drivers):
             raise ValueError("Invalid driver index, must be between {} and {}".format(0,len(self._drivers)-1))
         dindex = self._drivers[index].index
@@ -309,24 +302,20 @@ class SubRobotModel:
     def configToDrivers(self, q : Config) -> Config:
         qfull = self.tofull(q)
         dfull = self._robot.configToDrivers(qfull)
-        self._computeDrivers()
         dsub = [dfull[d.index] for d in self._drivers]
         return dsub
     def velocityToDrivers(self, dq : Vector) -> Vector:
         dqfull = self.tofull(dq)
         ddfull = self._robot.velocityToDrivers(dqfull)
-        self._computeDrivers()
         dsub = [ddfull[d.index] for d in self._drivers]
         return dsub
     def configFromDrivers(self, driverValues : Vector) -> Config:
-        self._computeDrivers()
         if len(driverValues) != len(self._drivers): raise ValueError("Invalid # of drivers")
         for (driver,d) in zip(self._drivers,driverValues):
             driver.setValue(d)
         qfull = self._robot.getConfig()
         return self.fromfull(qfull)
     def velocityFromDrivers(self,driverVelocities : Vector) -> Vector:
-        self._computeDrivers()
         if len(driverVelocities) != len(self._drivers): raise ValueError("Invalid # of drivers")
         for (driver,dd) in zip(self._drivers,driverVelocities):
             driver.setVelocity(dd)
