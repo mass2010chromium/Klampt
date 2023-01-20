@@ -1,7 +1,7 @@
 #ifndef RESOURCE_BROWSER_PROGRAM_H
 #define RESOURCE_BROWSER_PROGRAM_H
 
-#include "WorldViewProgram.h"
+#include "../Interface/WorldViewProgram.h"
 #include "Modeling/Resources.h"
 #include "View/ViewResource.h"
 #include "IO/XmlWorld.h"
