@@ -140,7 +140,7 @@ public:
     pose_ik = 0;
     attachMode = false;
     if(!ResourceBrowserProgram::Initialize()) return false;
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     viewResource.SetRobot(robot);
     self_colliding.resize(robot->links.size(),false);   
     env_colliding.resize(robot->links.size(),false);   
@@ -212,7 +212,7 @@ public:
   
   void UpdateConfig()
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     robot->UpdateConfig(poseWidget.Pose());
 
     //update collisions
@@ -255,7 +255,7 @@ public:
 
   void UpdateLinkValueGUI()
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     Vector2 limits(robot->qMin(cur_link),robot->qMax(cur_link));
     link_value_spinner->set_float_limits(limits.x,limits.y);
     link_value = robot->q(cur_link);
@@ -279,7 +279,7 @@ public:
 
   void UpdateDriverValueGUI()
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     Vector2 limits = robot->GetDriverLimits(cur_driver);
     driver_value_spinner->set_float_limits(limits.x,limits.y);
     driver_value = robot->GetDriverValue(cur_driver);
@@ -287,7 +287,7 @@ public:
 
   virtual void RenderWorld()
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     ViewRobot& viewRobot = world->robotViews[0];
     //ResourceBrowserProgram::RenderWorld();
     for(size_t i=0;i<world->terrains.size();i++)
@@ -379,7 +379,7 @@ public:
 
   Stance GetFlatStance()
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     Stance s;
     if(poseWidget.ikPoser.poseGoals.empty()) {
       printf("Storing flat ground stance\n");
@@ -416,7 +416,7 @@ public:
 
   ResourcePtr PoserToResource()
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     string type = resource_types[ResourceBrowserProgram::cur_resource_type];
     if(type == "Config") 
       return MakeResource("",robot->q);
@@ -489,7 +489,7 @@ public:
 
   virtual void Handle_Control(int id)
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     switch(id) {
     case SAVE_MOVIE_BUTTON_ID:
       //resize for movie
@@ -617,7 +617,7 @@ public:
 	  configs = milestones;
 	}
 	else {
-	  Robot* robot=world->robots[0].robo;
+	  RobotModel* robot=world->robots[0].robo;
 	  Timer timer;
 	  if(!InterpolateConstrainedPath(*robot,milestones,poseWidget.Constraints(),configs,1e-2)) return;
 
@@ -834,7 +834,7 @@ public:
 
   virtual void Handle_Keypress(unsigned char key,int x,int y)
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     switch(key) {
     case 'h':
       printf("Help:\n");
@@ -927,7 +927,7 @@ public:
 
   virtual void BeginDrag(int x,int y,int button,int modifiers)
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     if(button == GLUT_RIGHT_BUTTON) {
       double d;
       if(allWidgets.BeginDrag(x,viewport.h-y,viewport,d))
@@ -950,7 +950,7 @@ public:
 
   virtual void DoFreeDrag(int dx,int dy,int button)
   {
-    Robot* robot = world->robots[0].get();
+    RobotModel* robot = world->robots[0].get();
     if(button == GLUT_LEFT_BUTTON)  DragRotate(dx,dy);
     else if(button == GLUT_RIGHT_BUTTON) {
       if(allWidgets.hasFocus) {
@@ -1100,7 +1100,7 @@ int main(int argc, char** argv)
   distance.resize( 40, 40, 40);
   Array3D<Vector3> gradient;
 
-  Robot* robot = world.robots[0].robot;
+  RobotModel* robot = world.robots[0].robot;
   AABB3D bb;
 
   printf("Computing mesh shrunk by 1.5cm\n");
